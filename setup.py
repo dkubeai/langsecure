@@ -17,6 +17,7 @@ setup(
     url="https://github.com/mahmedk/langsecure.git",
     packages=find_packages(),
     include_package_data=True,
+    package_data={"langsecure": ["policy_store/*"]},
     install_requires=required,
     python_requires=">=3.10",
     extras_require={}

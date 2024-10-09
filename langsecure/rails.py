@@ -131,8 +131,10 @@ define flow
 '''
 
 from langsecure.types import Result
+from langsecure.factory import implements
 
-def secure_input_general(prompt) -> Result:
+@implements('general_orgcompliance')
+def secure_input_general(prompt, rules=None) -> Result:
     self_check_input_prompt = TaskPrompt(task=Task.SELF_CHECK_INPUT, content=SELF_CHECK_INPUT_PROMPT_STR)
     model = Model(type="main", engine="openai", model="gpt-3.5-turbo-instruct")
     rails_config = RailsConfig(models=[model], prompts=[self_check_input_prompt])
@@ -164,7 +166,8 @@ async def input_check_blocked_terms(context: Optional[dict] = None):
 
     return False
 
-def secure_input_proprietary_terms(prompt) -> Result:
+@implements('proprietary_terms')
+def secure_input_proprietary_terms(prompt, rules=None) -> Result:
     rails_config = RailsConfig.from_content(colang_content=PROPRIETARY_TERMS_CO)
     model = Model(type="main", engine="openai", model="gpt-3.5-turbo-instruct")
     rails_config.models = [model]
@@ -179,7 +182,8 @@ def secure_input_proprietary_terms(prompt) -> Result:
 
     return Result(decision='allow', message='proprietary terms check passed', policy_id='check_proprietary_terms')
 
-def secure_input_disallowed_topics(prompt) -> Result:
+@implements('topics_control')
+def secure_input_disallowed_topics(prompt, rules=None) -> Result:
     rails_config = RailsConfig.from_content(colang_content=DISALLOWED_TOPICS_CO)
     model = Model(type="main", engine="openai", model="gpt-3.5-turbo-instruct")
     rails_config.models = [model]
@@ -192,7 +196,8 @@ def secure_input_disallowed_topics(prompt) -> Result:
     
     return Result(decision='allow', message='disallowed topics check passed.', policy_id='check_disallowed_topics')
 
-def secure_input_content_security(prompt) -> Result:
+@implements('content_security')
+def secure_input_content_security(prompt, rules=None) -> Result:
     model1 = Model(type="main", engine="openai", model="gpt-3.5-turbo-instruct")
     model2 = Model(type="openai", engine="openai", model="gpt-3.5-turbo-instruct")
     input_content_security_prompt = TaskPrompt(task='content_safety_check_input $model=openai', content=INPUT_CONTENT_SECURITY_PROMPT, output_parser="is_content_safe")
@@ -209,10 +214,12 @@ def secure_input_content_security(prompt) -> Result:
     return Result(decision='allow', message="content security check passed.", policy_id='check_content_security')
 
 
-def secure_llm_response(query, answer, relevant_context=None):
+def secure_output_content_securitu(query, answer, relevant_context=None):
     return
 
 
+def secure_output_hallucination(query, answer, relevant_context=None):
+    return
 
 from taskflow import engines
 from taskflow import task
