@@ -131,7 +131,7 @@ define flow
 '''
 
 from langsecure.types import Result
-from langsecure.factory import implements
+from langsecure.decorators import implements
 
 @implements('general_orgcompliance')
 def secure_input_general(prompt, rules=None) -> Result:
