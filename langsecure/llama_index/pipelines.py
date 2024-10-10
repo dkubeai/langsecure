@@ -58,9 +58,17 @@ class StopComponent(QueryComponent):
 
 
 import inspect
-from langsecure import implements
-from langsecure import Langsecure
 
+from langsecure.decorators import implements
+from langsecure.shield import Langsecure
+
+
+
+# Rest of the code...
+
+
+# @implements('llama_index.core.query_pipeline.query.QueryPipeline')
+# class LI_QueryPipeline(Langsecure):
 @implements('llama_index.core.query_pipeline.query.QueryPipeline')
 class LI_QueryPipeline(Langsecure):
     def shield(self, runnable: Any) -> Any:

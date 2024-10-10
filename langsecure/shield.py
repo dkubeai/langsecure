@@ -7,7 +7,8 @@ from typing import Any
 from typing import ClassVar
 import inspect
 
-from . import rails
+from .decorators import implements
+
 from . import store
 from . import factory
 from . import utils
@@ -54,6 +55,7 @@ class Langsecure(BaseModel):
         
     @utils.execute_remotely_if_needed
     def _enforcer(self, scope=['user_input'], prompt=None, answer=None, context=None) -> (bool, str):
+        from . import rails
         parallel_rails = []
         for policy in self._py_policystore.policies:
             for filter in policy.filters:
@@ -89,5 +91,4 @@ def implements(fqcn: str):
     def decorator(cls):
         Langsecure.implements(fqcn, cls)
         return cls
-
     return decorator
