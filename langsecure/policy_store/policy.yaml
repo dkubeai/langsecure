@@ -1,0 +1,90 @@
+actions:
+    - log
+    - deny
+    - mask
+    - redact
+    - filter
+    - remove
+    - review
+    - notify
+filters:
+    - general_orgcompliance
+    - proprietary_terms
+    - content_security
+    - topics_control
+    - pii_protection
+    - hallucination_moderation
+    - context_security
+    - compliance_check
+logging:
+  level: info
+  target: default #file://, mlflow://, langfuse://
+policies:
+    - id: rag_pipeline_moderation
+      description: Security policies for protecting inputs, RAG context, and LLM
+        outputs.
+      subjects:
+        users: "*"
+        groups: "*"
+        roles: "*"
+      filters:
+      - id: general_orgcompliance
+        rules:  default
+        action: deny
+        scope:
+            - user_input
+      - id: proprietary_terms
+        rules:
+            terms:
+            - dkube
+            - apple
+            - orange
+        action: filter
+        scope:
+            - user_input
+            - context
+            - bot_response
+      - id: content_security
+        rules: default
+        action: deny
+        scope:
+        - user_input
+        - context
+        - bot_response
+      - id: topics_control
+        rules:
+            denied_topics:
+            - violence
+        action: deny
+        scope:
+        - user_input
+        - context
+        - bot_response
+      - id: pii_protection
+        rules:
+            pii_elements:
+            - name
+            - email
+            - phone_number
+        action: redact
+        scope:
+        - user_input
+        - context
+      - id: hallucination_moderation
+        rules:
+            threshold: 0.5
+        action: log
+        scope:
+        - bot_response
+      - id: context_security
+        rules:
+            denied_documents: []
+        action: deny
+        scope:
+        - context
+      - id: compliance_check
+        rules:
+        - gdpr
+        - ccpa
+        action: log
+

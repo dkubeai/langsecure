@@ -58,7 +58,7 @@ class StopComponent(QueryComponent):
 
 
 import inspect
-from langsecure import implements
+from langsecure.factory import implements
 from langsecure import Langsecure
 
 @implements('llama_index.core.query_pipeline.query.QueryPipeline')
@@ -74,7 +74,6 @@ class LI_QueryPipeline(Langsecure):
 
     def _get_next_module_keys(self, run_state):
         parent_callable = self._parent_callables["get_next_module_keys"]
-
 
         if 'stop_component' in run_state.executed_modules:
             #stop the pipeline execution here

@@ -1,9 +1,3 @@
-#pip install llama-index-core
-#pip install llama-index-llms-openai
-#pip install llama-index-embeddings-openai
-#pip install llama-index-readers-web
-
-
 from llama_index.core import (
 VectorStoreIndex,
 ServiceContext,
