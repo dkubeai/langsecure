@@ -11,6 +11,7 @@ from . import rails
 from . import store
 from . import factory
 from . import utils
+from . import trace
 
 class Langsecure(BaseModel):
     """Base class for langsecure implementation."""
@@ -32,6 +33,8 @@ class Langsecure(BaseModel):
         else:
             # Load the policies into the pydantic class.
             self._py_policystore = store.PyPolicyStore(self.policy_store)
+        if self.tracking_server:
+            self._trace = trace.LangsecureTracer(self.tracking_server).trace(name="langsecure")
 
 
     def shield(self, runnable: Any):
@@ -64,7 +67,7 @@ class Langsecure(BaseModel):
                 if fn != None:
                     parallel_rails.append(fn)
                     #raise ValueError(f"No implementor found for filter {filter.id}")
-        results = rails.ParallelRails().trigger(rails=parallel_rails, rules=filter.rules, prompt=prompt)
+        results = rails.ParallelRails().trigger(rails=parallel_rails, rules=filter.rules, prompt=prompt, trace=self._trace)
 
         for result in results:
             if result.decision == 'deny':

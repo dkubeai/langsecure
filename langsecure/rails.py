@@ -231,21 +231,26 @@ from typing import List, Callable
 import json
 
 class RailTask(task.Task):
-    def __init__(self, railfunc, **kwargs):
+    def __init__(self, railfunc, trace=None, **kwargs):
         super().__init__(name=railfunc.__name__)
         self.railfunc = railfunc
         self.kwargs = kwargs
+        self.trace = trace
 
     def execute(self):
+        if self.trace:
+          span = self.trace.span(name=self.railfunc.__name__)
         result = self.railfunc(**self.kwargs)
+        if self.trace:
+          span.event(name="result", output=result.model_dump_json())
         return result
 
 class ParallelRails(BaseModel):
-    def trigger(self, rails: List[Callable], **kwargs):
+    def trigger(self, rails: List[Callable], trace=None, **kwargs):
         # Create an unordered flow to run tasks in parallel
         flow = uf.Flow("parallel_rails")
         for rail in rails:
-            flow.add(RailTask(rail, **kwargs))
+            flow.add(RailTask(rail, trace, **kwargs))
         
         # Create and run the engine
         engine = engines.load(flow)
