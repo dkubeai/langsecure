@@ -17,7 +17,7 @@ class Langsecure(BaseModel):
     """Base class for langsecure implementation."""
 
     policy_store: Optional[Union[str, Path, HttpUrl]] = None
-    tracking_server: Optional[Union[Path, HttpUrl]] = Path("~/.langsecure/trace.log")
+    tracking_server: Optional[Union[Path, HttpUrl]] = Path("~/.langsecure/trace.log").expanduser()
     rails_backend: Optional[Literal['nvidia-nemoguardrails']] = 'nvidia-nemoguardrails'
     langsecure_server: Optional[HttpUrl] = None
 
