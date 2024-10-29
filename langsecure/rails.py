@@ -238,11 +238,9 @@ class RailTask(task.Task):
         self.trace = trace
 
     def execute(self):
-        if self.trace:
-          span = self.trace.span(name=self.railfunc.__name__)
+        span = self.trace.span(name=self.railfunc.__name__)
         result = self.railfunc(**self.kwargs)
-        if self.trace:
-          span.event(name="result", output=result.model_dump_json())
+        span.event(name="result", output=result.model_dump_json())
         return result
 
 class ParallelRails(BaseModel):

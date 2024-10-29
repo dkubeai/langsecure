@@ -1,11 +1,10 @@
-from pydantic import BaseModel, HttpUrl, Field
+from pydantic import BaseModel, HttpUrl
 from pathlib import Path
 from typing import Union
 from typing import Literal
 from typing import Optional
 from typing import Any
-from typing import ClassVar
-import inspect
+import os
 
 from . import rails
 from . import store
@@ -13,16 +12,18 @@ from . import factory
 from . import utils
 from . import trace
 
+
 class Langsecure(BaseModel):
     """Base class for langsecure implementation."""
 
     policy_store: Optional[Union[str, Path, HttpUrl]] = None
-    tracking_server: Optional[Union[Path, HttpUrl]] = None
+    tracking_server: Optional[Union[Path, HttpUrl]] = Path("~/.langsecure/trace.log")
     rails_backend: Optional[Literal['nvidia-nemoguardrails']] = 'nvidia-nemoguardrails'
     langsecure_server: Optional[HttpUrl] = None
 
     def __init__(self, **params):
         super().__init__(**params)
+        os.makedirs(os.path.expanduser("~/.langsecure"), exist_ok=True)
 
         # hardcode rails backend to be nvidia nemoguardrails for now.
         self.rails_backend = 'nvidia-nemoguardrails'
@@ -33,8 +34,7 @@ class Langsecure(BaseModel):
         else:
             # Load the policies into the pydantic class.
             self._py_policystore = store.PyPolicyStore(self.policy_store)
-        if self.tracking_server:
-            self._trace = trace.LangsecureTracer(self.tracking_server).trace(name="langsecure")
+        self._trace = trace.LangsecureTracer(self.tracking_server).trace(name="langsecure")
 
 
     def shield(self, runnable: Any):

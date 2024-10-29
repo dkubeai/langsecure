@@ -17,7 +17,7 @@ class FileSpanExporter(SpanExporter):
         self,
         file_path: str | Path | IO,
     ) -> None:
-        self.file_path = Path(file_path) if isinstance(file_path, str) else file_path
+        self.file_path = Path(file_path) if isinstance(file_path, str) else file_path.expanduser()
         self._lock = threading.Lock()
         self._file: IO | None = None
 
