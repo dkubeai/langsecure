@@ -20,6 +20,8 @@ class Langsecure(BaseModel):
     tracking_server: Optional[Union[Path, HttpUrl]] = Path("~/.langsecure/trace.log").expanduser()
     rails_backend: Optional[Literal['nvidia-nemoguardrails']] = 'nvidia-nemoguardrails'
     langsecure_server: Optional[HttpUrl] = None
+    llm_engine: Optional[str] = "openai"
+    llm_model: Optional[str] = "gpt-3.5-turbo-instruct"
 
     def __init__(self, **params):
         super().__init__(**params)
@@ -67,7 +69,7 @@ class Langsecure(BaseModel):
                 if fn != None:
                     parallel_rails.append(fn)
                     #raise ValueError(f"No implementor found for filter {filter.id}")
-        results = rails.ParallelRails().trigger(rails=parallel_rails, rules=filter.rules, prompt=prompt, trace=self._trace)
+        results = rails.ParallelRails().trigger(rails=parallel_rails, rules=filter.rules, prompt=prompt, engine=self.llm_engine, trace=self._trace, model=self.llm_model)
 
         for result in results:
             if result.decision == 'deny':

@@ -5,7 +5,7 @@ SimpleDirectoryReader,
 from pydantic import HttpUrl
 from pathlib import Path
 
-reader = SimpleDirectoryReader("./data")
+reader = SimpleDirectoryReader("../data")
 docs = reader.load_data()
 #print(docs[0].get_content())
 
@@ -36,7 +36,7 @@ from langsecure import Langsecure
 
 #qp = Langsecure(langsecure_server="http://127.0.0.1:8001").shield(qp)
 #tracking_server = HttpUrl(os.environ.get("LANGFUSE_HOST"))
-tracking_server = Path("./langsecure.log")
+#tracking_server = Path("./langsecure.log")
 
 qp = Langsecure(policy_store="default", tracking_server=tracking_server).shield(qp)
 #output = qp.run(input="what is the purpose of positional encoding in the Transformer architecture?")
