@@ -13,7 +13,6 @@ from . import factory
 from . import utils
 from . import trace
 
-
 class Langsecure(BaseModel):
     """Base class for langsecure implementation."""
 
@@ -121,15 +120,16 @@ class Langsecure(BaseModel):
                 if extra_params:
                     for key, value in extra_params.items():
                         mlflow.log_param(key, value)
-    def server(self, app=None):
-        if app is not None:
-            utils.apiroute(app, self._enforcer)
-        else:
-            from flask import Flask, request, jsonify
-            app = Flask("langsecure")
 
-            utils.apiroute(app, self._enforcer, instance=self)
-            app.run(debug=True, host='0.0.0.0', port=8001)
+        def server(self, app=None):
+            if app is not None:
+                utils.apiroute(app, self._enforcer)
+            else:
+                from flask import Flask, request, jsonify
+                app = Flask("langsecure")
+
+                utils.apiroute(app, self._enforcer, instance=self)
+                app.run(debug=True, host='0.0.0.0', port=8001)
 
 
 def implements(fqcn: str):
