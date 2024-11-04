@@ -53,24 +53,33 @@ class PyPolicyStore(BaseModel):
 
         self.policies = self._load_pydantic(policydocs)
 
-    def _load_pydantic(self, policydocs):
-        pypolicies = []
-        
-        for pdoc in policydocs:
-            policies = pdoc.get("policies", [])
-            for policy in policies:
-                pypolicy = PyPolicy(id=policy['id'], description=policy.get('description', ''))
+    def _load_fromurl(self, url):
+        """
+        Load policies from a given URL, expected to be in JSON or YAML format.
+        Supports both file types by checking the URL extension and content type.
+        """
+        try:
+            response = requests.get(url)
+            response.raise_for_status()  # Check if the request was successful
 
-                filters = policy.get("filters", [])
-                for filter in filters:
-                    pyfilter = PyFilter(**filter)
-                    pypolicy.add_filter(pyfilter)
-                subjects = policy.get("subjects", {})
-                pypolicy.add_subjects(**subjects)
+            policydocs = []
+            
+            # Determine file format based on URL or content type header
+            if url.endswith(('.yaml', '.yml')) or "yaml" in response.headers.get("Content-Type", "").lower():
+                policydocs.append(yaml.safe_load(response.text))
+            elif url.endswith('.json') or "application/json" in response.headers.get("Content-Type", "").lower():
+                policydocs.append(json.loads(response.text))
+            else:
+                raise ValueError("Unsupported file format: Only JSON and YAML are supported.")
 
-                pypolicies.append(pypolicy)
+            # Convert loaded documents into PyPolicy instances
+            self.policies = self._load_pydantic(policydocs)
+        except requests.exceptions.RequestException as e:
+            raise ConnectionError(f"Failed to fetch policies from URL: {url}") from e
+        except (yaml.YAMLError, json.JSONDecodeError) as e:
+            raise ValueError(f"Error parsing policy file from URL: {url}. Expected JSON or YAML format.") from e
 
-        return pypolicies
+
     
 
     def _load_pydantic(self, policydocs):
