@@ -134,9 +134,9 @@ from langsecure.types import Result
 from langsecure.factory import implements
 
 @implements('general_orgcompliance')
-def secure_input_general(prompt, rules=None) -> Result:
+def secure_input_general(prompt, rules=None, engine="openai", model="gpt-3.5-turbo-instruct") -> Result:
     self_check_input_prompt = TaskPrompt(task=Task.SELF_CHECK_INPUT, content=SELF_CHECK_INPUT_PROMPT_STR)
-    model = Model(type="main", engine="openai", model="gpt-3.5-turbo-instruct")
+    model = Model(type="main", engine=engine, model=model)
     rails_config = RailsConfig(models=[model], prompts=[self_check_input_prompt])
     rails = LLMRails(rails_config)
     llm = rails.llm
@@ -167,9 +167,9 @@ async def input_check_blocked_terms(context: Optional[dict] = None):
     return False
 
 @implements('proprietary_terms')
-def secure_input_proprietary_terms(prompt, rules=None) -> Result:
+def secure_input_proprietary_terms(prompt, rules=None, engine="openai", model="gpt-3.5-turbo-instruct") -> Result:
     rails_config = RailsConfig.from_content(colang_content=PROPRIETARY_TERMS_CO)
-    model = Model(type="main", engine="openai", model="gpt-3.5-turbo-instruct")
+    model = Model(type="main", engine=engine, model=model)
     rails_config.models = [model]
     rails_config.rails = Rails(input=InputRails(flows=["input check blocked terms"]))
 
@@ -183,9 +183,9 @@ def secure_input_proprietary_terms(prompt, rules=None) -> Result:
     return Result(decision='allow', message='proprietary terms check passed', policy_id='check_proprietary_terms')
 
 @implements('topics_control')
-def secure_input_disallowed_topics(prompt, rules=None) -> Result:
+def secure_input_disallowed_topics(prompt, rules=None, engine="openai", model="gpt-3.5-turbo-instruct") -> Result:
     rails_config = RailsConfig.from_content(colang_content=DISALLOWED_TOPICS_CO)
-    model = Model(type="main", engine="openai", model="gpt-3.5-turbo-instruct")
+    model = Model(type="main", engine=engine, model=model)
     rails_config.models = [model]
 
     rails = LLMRails(rails_config)
@@ -197,9 +197,9 @@ def secure_input_disallowed_topics(prompt, rules=None) -> Result:
     return Result(decision='allow', message='disallowed topics check passed.', policy_id='check_disallowed_topics')
 
 @implements('content_security')
-def secure_input_content_security(prompt, rules=None) -> Result:
-    model1 = Model(type="main", engine="openai", model="gpt-3.5-turbo-instruct")
-    model2 = Model(type="openai", engine="openai", model="gpt-3.5-turbo-instruct")
+def secure_input_content_security(prompt, rules=None, engine="openai", model="gpt-3.5-turbo-instruct") -> Result:
+    model1 = Model(type="main", engine=engine, model=model)
+    model2 = Model(type="openai", engine=engine, model=model)
     input_content_security_prompt = TaskPrompt(task='content_safety_check_input $model=openai', content=INPUT_CONTENT_SECURITY_PROMPT, output_parser="is_content_safe")
     rails_config = RailsConfig(models=[model1, model2], prompts=[input_content_security_prompt])
    
@@ -231,21 +231,24 @@ from typing import List, Callable
 import json
 
 class RailTask(task.Task):
-    def __init__(self, railfunc, **kwargs):
+    def __init__(self, railfunc, trace=None, **kwargs):
         super().__init__(name=railfunc.__name__)
         self.railfunc = railfunc
         self.kwargs = kwargs
+        self.trace = trace
 
     def execute(self):
+        span = self.trace.span(name=self.railfunc.__name__)
         result = self.railfunc(**self.kwargs)
+        span.event(name="result", output=result.model_dump_json())
         return result
 
 class ParallelRails(BaseModel):
-    def trigger(self, rails: List[Callable], **kwargs):
+    def trigger(self, rails: List[Callable], trace=None, **kwargs):
         # Create an unordered flow to run tasks in parallel
         flow = uf.Flow("parallel_rails")
         for rail in rails:
-            flow.add(RailTask(rail, **kwargs))
+            flow.add(RailTask(rail, trace, **kwargs))
         
         # Create and run the engine
         engine = engines.load(flow)

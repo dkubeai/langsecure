@@ -31,7 +31,7 @@ SimpleDirectoryReader,
 load_index_from_storage,
 )
 
-reader = SimpleDirectoryReader("./data")
+reader = SimpleDirectoryReader("../data")
 docs = reader.load_data()
 #print(docs[0].get_content())
 
