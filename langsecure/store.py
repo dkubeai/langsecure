@@ -53,6 +53,25 @@ class PyPolicyStore(BaseModel):
 
         self.policies = self._load_pydantic(policydocs)
 
+    def _load_pydantic(self, policydocs):
+        pypolicies = []
+        
+        for pdoc in policydocs:
+            policies = pdoc.get("policies", [])
+            for policy in policies:
+                pypolicy = PyPolicy(id=policy['id'], description=policy.get('description', ''))
+
+                filters = policy.get("filters", [])
+                for filter in filters:
+                    pyfilter = PyFilter(**filter)
+                    pypolicy.add_filter(pyfilter)
+                subjects = policy.get("subjects", {})
+                pypolicy.add_subjects(**subjects)
+
+                pypolicies.append(pypolicy)
+
+        return pypolicies
+    
 
     def _load_pydantic(self, policydocs):
         pypolicies = []
