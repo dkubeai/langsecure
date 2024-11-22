@@ -84,15 +84,16 @@ class LI_QueryPipeline(Langsecure):
             if stage == "input":
                 for module_key, module_input in run_state.all_module_inputs.items():
                     if module_key == stage:
-                        deny, deny_message = self._input_enforcer(module_input['input'])
-                        if deny == True:
-                            stop_component = StopComponent(message=deny_message)
-                            #Execute a stop stage and return back to the caller
-                            run_state.all_module_inputs['stop_component'] = {"message": deny_message}
-                            if "stop_component" not in run_state.module_dict.keys():
-                                self._parent.add("stop_component", stop_component)
-                            return ["stop_component"]
+                        for value in module_input.values():
+                            deny, deny_message = self._input_enforcer(value)
+                            if deny == True:
+                                stop_component = StopComponent(message=deny_message)
+                                #Execute a stop stage and return back to the caller
+                                run_state.all_module_inputs['stop_component'] = {"message": deny_message}
+                                if "stop_component" not in run_state.module_dict.keys():
+                                    self._parent.add("stop_component", stop_component)
+                                return ["stop_component"]
             if stage == "stop_component":
                 #post stop component, just return empty list
                 return []
-        return next_stages           
+        return next_stages
